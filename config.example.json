@@ -1,0 +1,6 @@
+{
+  "default_path": "/path/to/your/audio/files",
+  "report_title": "My Audio Library",
+  "audio_extensions": [".m4a", ".mp3", ".wav", ".aac", ".flac", ".ogg", ".m4v", ".opus"],
+  "output_filename": "audio_library_report.html"
+}

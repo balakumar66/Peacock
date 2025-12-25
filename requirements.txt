@@ -1,0 +1,6 @@
+# Core dependencies
+mutagen>=1.47.0
+
+# Optional: for building standalone executables
+# Uncomment the line below if you want to create executables
+# pyinstaller>=6.0.0
