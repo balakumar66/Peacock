@@ -73,7 +73,7 @@
                 <span>📂</span>
                 <span class="directory-path" id="currentPath">{{ current_path or 'Not set' }}</span>
             </div>
-            <button class="change-dir-btn" onclick="changeDirectory()">Change Directory</button>
+            <button class="change-dir-btn" onclick="changeDirectory()">Browse Directory...</button>
         </div>
         
         <div class="controls">
@@ -134,17 +134,36 @@
         // Initialize app with server data
         initializeApp({{ audio_data | tojson }});
         
-        // Directory change function
+        // Directory change function with native picker
         async function changeDirectory() {
-            const newPath = prompt('Enter the path to your audio files directory:\n\nExamples:\n• Windows: C:/Users/YourName/Music\n• macOS: /Users/YourName/Music\n• Linux: /home/yourname/Music');
-            
-            if (!newPath) return;
-            
             try {
+                // First, try to open the native directory picker via server
+                const browseResponse = await fetch('/api/browse_directory', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                });
+                
+                const browseData = await browseResponse.json();
+                
+                if (!browseData.success) {
+                    if (browseData.cancelled) {
+                        // User cancelled the picker
+                        return;
+                    }
+                    
+                    // Fallback to manual input if native picker fails
+                    const newPath = prompt('Native picker not available. Enter the path to your audio files directory:\n\nExamples:\n• Windows: C:/Users/YourName/Music\n• macOS: /Users/YourName/Music\n• Linux: /home/yourname/Music');
+                    
+                    if (!newPath) return;
+                    browseData.path = newPath.trim();
+                }
+                
+                // Now apply the selected directory
                 const response = await fetch('/api/change_directory', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ path: newPath.trim() })
+                    body: JSON.stringify({ path: browseData.path })
                 });
                 
                 const data = await response.json();
