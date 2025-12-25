@@ -9,11 +9,18 @@ function initializeApp(audioData) {
     recordings = audioData;
     filteredRecordings = [...recordings];
     
-    document.addEventListener('DOMContentLoaded', () => {
-        updateStats();
-        renderTable();
-        setupEventListeners();
-    });
+    // Check if DOM is already ready (since script is at bottom of HTML)
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initUI);
+    } else {
+        initUI();
+    }
+}
+
+function initUI() {
+    updateStats();
+    renderTable();
+    setupEventListeners();
 }
 
 function updateStats() {
@@ -63,10 +70,15 @@ function renderTable() {
             <td>${recording.duration_formatted}</td>
             <td>${recording.file_size_formatted}</td>
             <td>${new Date(recording.created_date).toLocaleDateString()}</td>
+            <td>${new Date(recording.created_date).toLocaleDateString()}</td>
+            <td>${recording.comment || '-'}</td>
             <td>${recording.artist || '-'}</td>
+            <td>${recording.album || '-'}</td>
             <td>
-                <button class="play-btn" onclick="playRecording(${index})">▶ Play</button>
-                <button class="open-btn" onclick="openInPlayer(${index})">📂 Show</button>
+                <div class="action-cell">
+                    <button class="play-btn" onclick="playRecording(${index})">▶ Play</button>
+                    <button class="open-btn" onclick="openInPlayer(${index})">📂 Show</button>
+                </div>
             </td>
         </tr>
     `).join('');
@@ -347,6 +359,24 @@ function setupEventListeners() {
             sortRecordings(sortType);
         });
     });
+    
+    // Dark mode toggle
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    if (darkModeToggle) {
+        // Load saved preference
+        const isDarkMode = localStorage.getItem('darkMode') === 'true';
+        if (isDarkMode) {
+            document.body.classList.add('dark-mode');
+            darkModeToggle.textContent = '☀️ Light Mode';
+        }
+        
+        darkModeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            const isNowDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isNowDark);
+            darkModeToggle.textContent = isNowDark ? '☀️ Light Mode' : '🌙 Dark Mode';
+        });
+    }
 }
 
 function sortRecordings(type) {
