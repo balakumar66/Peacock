@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🦚 {{ title }}</h1>
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalCount">0</div>
+                    <div class="stat-label">Total Files</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="totalDuration">0:00</div>
+                    <div class="stat-label">Total Duration</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="totalSize">0 MB</div>
+                    <div class="stat-label">Total Size</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 Search by title, filename, artist, album, comment...">
+            </div>
+            <button class="action-btn organize" onclick="showTitleOrganizer()">✨ Organize Titles</button>
+            <div class="filter-group">
+                <button class="filter-btn active" data-sort="default">Default Order</button>
+                <button class="filter-btn" data-sort="duration">By Duration</button>
+                <button class="filter-btn" data-sort="date">By Date</button>
+                <button class="filter-btn" data-sort="title">By Title</button>
+            </div>
+        </div>
+        
+        <div class="table-container">
+            <table id="recordingsTable">
+                <thead>
+                    <tr>
+                        <th style="width: 30%;">Title</th>
+                        <th style="width: 20%;">Filename</th>
+                        <th>Duration</th>
+                        <th>Size</th>
+                        <th>Created</th>
+                        <th>Artist</th>
+                        <th>Play</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Title Organizer Modal -->
+    <div class="modal" id="organizerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>✨ Title Organizer</h2>
+                <button class="close-modal" onclick="closeOrganizer()">×</button>
+            </div>
+            <div id="organizerContent">
+                <div class="loading">Loading suggestions...</div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick="closeOrganizer()">Cancel</button>
+                <button class="btn-primary" onclick="applySelectedSuggestions()">Apply Selected</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+    <script>
+        // Initialize app with server data
+        initializeApp({{ audio_data | tojson }});
+    </script>
+</body>
+</html>

@@ -10,6 +10,7 @@ ENV/
 *.egg-info/
 dist/
 build/
+lib/__pycache__/
 
 # IDEs
 .vscode/
@@ -21,7 +22,7 @@ build/
 
 # Project specific
 config.json
-*.html
+/*.html
 *.log
 
 # Virtual environments
