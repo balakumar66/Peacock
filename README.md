@@ -1,6 +1,6 @@
 # 🦚 Peacock - Audio Library Organizer
 
-**Peacock** is an elegant, cross-platform tool that extracts metadata from your audio files (music, voice memos, podcasts, recordings) and generates a beautiful, interactive HTML report. Search, filter, sort, and play your audio files directly in your browser!
+**Peacock** is an elegant, cross-platform tool that extracts metadata from your audio files (music, voice memos, podcasts, recordings). Choose between a **static HTML report** or an **interactive web server** with live editing capabilities!
 
 Perfect for organizing voice memos, music collections, podcast libraries, or any audio recordings on **Windows, macOS, and Linux**.
 
@@ -11,14 +11,24 @@ Perfect for organizing voice memos, music collections, podcast libraries, or any
 
 ## ✨ Features
 
+### Static Report Mode (peacock.py)
 - 🎵 **Interactive HTML Report** - Beautiful, responsive interface that works offline
 - 🔍 **Powerful Search** - Search by title, filename, artist, album, comment, or any metadata
 - 📊 **Smart Filtering** - Sort by duration, date, title, or any column
-- ▶️ **Built-in Audio Player** - Play audio files directly in the browser
 - 📈 **Statistics Dashboard** - Total files, duration, and file size at a glance
 - 🔒 **Read-Only** - Never modifies your original files
+- 🌐 **Shareable** - Share HTML reports with anyone
+
+### Interactive Server Mode (peacock_server.py)
+- 🖊️ **Live Metadata Editing** - Edit audio titles directly in the browser
+- ✨ **Smart Title Suggestions** - Bulk organize with intelligent title recommendations
+- 📂 **File Management** - "Show in Finder" to open file locations
+- 🎯 **Real-time Updates** - Changes update actual file metadata immediately
+- 🔄 **Confirmation Dialogs** - Safe editing with undo support
+- 💻 **Modern UI** - Clean, modular architecture with CSS/JS separation
+
+### Common Features
 - ⚙️ **Customizable** - Configure via JSON file
-- 🌐 **Shareable** - Easy to share with friends and colleagues
 - 💻 **Cross-Platform** - Works on Windows, macOS, and Linux
 
 ## 🎯 Supported Audio Formats
@@ -110,19 +120,21 @@ python peacock.py --setup
 
 ### Usage
 
-#### Basic Usage
+#### Mode 1: Static HTML Report (Read-Only)
+
+**Basic Usage:**
 ```bash
 python peacock.py
 ```
 
 On first run, you'll be guided through a setup wizard. After that, it will use your saved configuration.
 
-#### Reconfigure Settings
+**Reconfigure Settings:**
 ```bash
 python peacock.py --setup
 ```
 
-#### Specify Path Directly
+**Specify Path Directly:**
 ```bash
 python peacock.py "/path/to/audio/files"
 
@@ -133,17 +145,41 @@ python peacock.py "C:\Users\YourName\Music"
 python peacock.py "/Users/YourName/Music"
 ```
 
-#### Custom Output File
+**Custom Output File:**
 ```bash
 python peacock.py "/path/to/audio/files" -o my_report.html
 ```
 
-#### Using Custom Config File
+#### Mode 2: Interactive Web Server (Live Editing)
+
+**Start the Interactive Server:**
 ```bash
-python peacock.py -c my_config.json
+python peacock_server.py
 ```
 
-### View the Report
+Or with custom path:
+```bash
+python peacock_server.py "/path/to/audio/files"
+```
+
+Then open your browser to: **http://localhost:5000**
+
+**Features:**
+- ✏️ Click the edit icon to modify any title
+- ✨ Click "Organize Titles" for bulk smart suggestions
+- 📂 Click "Show in Finder" to reveal file location
+- 🎵 All changes update the actual audio file metadata
+
+**Modular Architecture:**
+The interactive server uses a clean, maintainable architecture:
+- **Python Classes**: `MetadataManager` and `TitleSuggester` for business logic
+- **Flask Server**: Clean 285-line server (reduced from 1203 lines!)
+- **Separate Assets**: CSS (395 lines) and JavaScript (372 lines) in static/
+- **Jinja2 Templates**: HTML template rendering for clean separation of concerns
+
+See [REFACTORING.md](REFACTORING.md) for architecture details.
+
+### View the Static Report (peacock.py output)
 
 After running Peacock, open the generated HTML file in your browser:
 
@@ -217,10 +253,19 @@ Users just unzip, create `config.json`, and run the executable!
 
 ## 📖 How It Works
 
+### Static Report Mode (peacock.py)
 1. **Scan** - Peacock recursively scans your directory for audio files
 2. **Extract** - Reads metadata including title, artist, album, duration, dates, and more
 3. **Generate** - Creates a beautiful, interactive HTML report
-4. **Enjoy** - Open in your browser to search, filter, and play audio files
+4. **Enjoy** - Open in your browser to search, filter, and view files
+
+### Interactive Server Mode (peacock_server.py)
+1. **Load** - Loads audio metadata using `MetadataManager` class
+2. **Serve** - Flask server renders interactive UI with Jinja2 templates
+3. **Edit** - Modify titles with confirmation dialogs
+4. **Suggest** - `TitleSuggester` provides intelligent bulk recommendations
+5. **Update** - Changes write directly to audio file metadata
+6. **Navigate** - "Show in Finder" reveals file locations in your file manager
 
 ## 🎨 Customization
 
@@ -254,11 +299,22 @@ When sharing Peacock with others:
 
 ```
 Peacock/
-├── peacock.py              # Main application
+├── peacock.py              # Static HTML report generator (read-only)
+├── peacock_server.py       # Interactive web server (live editing)
+├── lib/                    # Python modules
+│   ├── __init__.py         # Package initialization
+│   ├── metadata_manager.py # MetadataManager class for audio operations
+│   └── title_suggester.py  # TitleSuggester class for smart titles
+├── static/                 # Frontend assets
+│   ├── style.css           # UI styling (395 lines)
+│   └── app.js              # Client-side JavaScript (372 lines)
+├── templates/              # HTML templates
+│   └── index.html          # Jinja2 template for server UI
 ├── config.json             # Your personal config (not in git)
 ├── config.example.json     # Example config for sharing
 ├── requirements.txt        # Python dependencies
 ├── README.md              # This file
+├── REFACTORING.md         # Modular architecture documentation
 ├── .gitignore             # Git ignore rules
 └── LICENSE                # MIT License
 ```
@@ -287,26 +343,36 @@ Examples:
 
 ## 🔒 Privacy & Security
 
-- **Read-Only**: Peacock only reads metadata, never modifies files
+- **Static Mode (peacock.py)**: Read-only, never modifies files
+- **Interactive Mode (peacock_server.py)**: Modifies metadata only when you explicitly save changes
 - **Local Processing**: All processing happens on your machine
-- **No Network**: No data is sent to external servers
-- **Your Data**: Generated reports stay on your computer
+- **No External Network**: No data is sent to external servers
+- **Your Data**: All data stays on your computer
+- **Config File**: config.json is gitignored for privacy
 
 ## 🐛 Troubleshooting
 
-### "mutagen library not installed"
+### "mutagen library not installed" or "flask not found"
 ```bash
 pip install -r requirements.txt
 ```
+
+Make sure you have installed all dependencies including Flask for the interactive server.
 
 ### "Directory does not exist"
 - Check that the path in `config.json` is correct
 - Use forward slashes `/` or double backslashes `\\` in paths
 - Use absolute paths (e.g., `C:/Users/username/Music` or `/Users/username/Music`)
 
-### Audio won't play in browser
+### Interactive server not starting
+- Ensure Flask is installed: `pip install flask flask-cors`
+- Check that port 5000 is not in use by another application
+- Try specifying a different port if needed
+
+### Audio won't play in browser (static report mode)
 - Some browsers may have security restrictions with `file://` URLs
 - Try opening the HTML file from a local web server or use a different browser
+- For live audio access, use the interactive server mode instead
 
 ## 🤝 Contributing
 
