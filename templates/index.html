@@ -5,6 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .directory-bar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+        .directory-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            flex: 1;
+        }
+        .directory-path {
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 13px;
+            opacity: 0.95;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .change-dir-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        .change-dir-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -24,6 +66,14 @@
                     <div class="stat-label">Total Size</div>
                 </div>
             </div>
+        </div>
+        
+        <div class="directory-bar">
+            <div class="directory-info">
+                <span>📂</span>
+                <span class="directory-path" id="currentPath">{{ current_path or 'Not set' }}</span>
+            </div>
+            <button class="change-dir-btn" onclick="changeDirectory()">Change Directory</button>
         </div>
         
         <div class="controls">
@@ -48,18 +98,22 @@
                         <th>Duration</th>
                         <th>Size</th>
                         <th>Created</th>
+                        <th>Modified</th>
+                        <th>Comment</th>
                         <th>Artist</th>
-                        <th>Play</th>
+                        <th>Album</th>
+                        <th style="width: 100px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
+                    <!-- Populated by JavaScript -->
                 </tbody>
             </table>
         </div>
     </div>
     
     <!-- Title Organizer Modal -->
-    <div class="modal" id="organizerModal">
+    <div id="organizerModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>✨ Title Organizer</h2>
@@ -79,6 +133,34 @@
     <script>
         // Initialize app with server data
         initializeApp({{ audio_data | tojson }});
+        
+        // Directory change function
+        async function changeDirectory() {
+            const newPath = prompt('Enter the path to your audio files directory:\n\nExamples:\n• Windows: C:/Users/YourName/Music\n• macOS: /Users/YourName/Music\n• Linux: /home/yourname/Music');
+            
+            if (!newPath) return;
+            
+            try {
+                const response = await fetch('/api/change_directory', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ path: newPath.trim() })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification(`Successfully loaded ${data.file_count} files from new directory`, 'success');
+                    document.getElementById('currentPath').textContent = data.path;
+                    // Reload the page to refresh with new data
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showNotification(`Error: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showNotification('Failed to change directory: ' + error.message, 'error');
+            }
+        }
     </script>
 </body>
 </html>
