@@ -68,7 +68,7 @@ function renderTable() {
             </td>
             <td>${recording.filename}</td>
             <td>${recording.duration_formatted}</td>
-            <td>${recording.file_size_formatted}</td>
+            <td style="white-space: nowrap;">${recording.file_size_formatted}</td>
             <td>${new Date(recording.created_date).toLocaleDateString()}</td>
             <td>${new Date(recording.created_date).toLocaleDateString()}</td>
             <td>${recording.comment || '-'}</td>

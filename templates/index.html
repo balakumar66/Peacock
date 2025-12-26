@@ -74,7 +74,7 @@
                 <span>📂</span>
                 <span class="directory-path" id="currentPath">{{ current_path or 'Not set' }}</span>
             </div>
-            <button class="change-dir-btn" onclick="changeDirectory()">Change Directory</button>
+            <button class="change-dir-btn" onclick="changeDirectory()">Add Directory</button>
         </div>
         
         <div class="controls">
@@ -97,7 +97,7 @@
                         <th style="width: 30%;">Title</th>
                         <th style="width: 20%;">Filename</th>
                         <th>Duration</th>
-                        <th>Size</th>
+                        <th style="width: 150px; min-width: 150px;">Size</th>
                         <th>Created</th>
                         <th>Modified</th>
                         <th>Comment</th>
@@ -137,7 +137,7 @@
         
         // Directory change function
         async function changeDirectory() {
-            const newPath = prompt('Enter the path to your audio files directory:\n\nExamples:\n• Windows: C:/Users/YourName/Music\n• macOS: /Users/YourName/Music\n• Linux: /home/yourname/Music\n\nCurrent: {{ current_path }}');
+            const newPath = prompt('Add a directory to scan for audio files:\n\nExamples:\n• Windows: C:/Users/YourName/Music\n• macOS: /Users/YourName/Music\n• Linux: /home/yourname/Music\n\nNote: This will ADD to existing directories, not replace them.\n\nCurrent: {{ current_path }}');
             
             if (!newPath || newPath.trim() === '') return;
             
