@@ -27,12 +27,11 @@ def build_app():
     """Build the application using PyInstaller"""
     print("\n[*] Building Peacock application...")
     
-    # Use pyinstaller from venv
-    pyinstaller_path = os.path.join(os.path.dirname(sys.executable), 'pyinstaller')
-    
-    # PyInstaller command
+    # PyInstaller command - use python -m for cross-platform compatibility
     cmd = [
-        pyinstaller_path,
+        sys.executable,
+        '-m',
+        'PyInstaller',
         '--name=Peacock',
         '--windowed',  # No console window (macOS: creates .app)
         '--onefile',  # Single bundle
