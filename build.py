@@ -92,10 +92,10 @@ When you first launch Peacock:
 
 ## Usage
 
-- **Edit titles**: Click the ✏️ icon next to any title
-- **Organize titles**: Click the ✨ button to auto-format selected titles
-- **Play audio**: Click ▶ Play button to preview
-- **Show in Finder/Explorer**: Click 📂 Show to reveal file location
+- **Edit titles**: Click the edit icon next to any title
+- **Organize titles**: Click the organize button to auto-format selected titles
+- **Play audio**: Click the Play button to preview
+- **Show in Finder/Explorer**: Click Show to reveal file location
 - **Search**: Use the search box to filter files
 - **Sort**: Click column headers to sort
 - **Dark mode**: Toggle with the moon/sun icon
@@ -111,7 +111,7 @@ For issues or questions, visit: https://github.com/balakumar66/Peacock
     
     dist_readme = 'dist/README.txt'
     if os.path.exists('dist'):
-        with open(dist_readme, 'w') as f:
+        with open(dist_readme, 'w', encoding='utf-8') as f:
             f.write(readme_content)
         print(f"\n[+] Created: {dist_readme}")
 
