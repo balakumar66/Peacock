@@ -1,0 +1,112 @@
+name: Build Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # Trigger on version tags like v1.0.0
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+      
+      - name: Build macOS app
+        run: |
+          python build.py
+      
+      - name: Create zip
+        run: |
+          cd dist
+          zip -r Peacock-macOS.zip Peacock.app README.txt
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: peacock-macos
+          path: dist/Peacock-macOS.zip
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+      
+      - name: Build Windows exe
+        run: |
+          python build.py
+      
+      - name: Create zip
+        run: |
+          cd dist
+          Compress-Archive -Path Peacock.exe,README.txt -DestinationPath Peacock-Windows.zip
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: peacock-windows
+          path: dist/Peacock-Windows.zip
+
+  create-release:
+    needs: [build-macos, build-windows]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: peacock-macos
+      
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: peacock-windows
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            Peacock-macOS.zip
+            Peacock-Windows.zip
+          body: |
+            ## Peacock Audio Metadata Manager
+            
+            ### Downloads
+            - **macOS**: Download Peacock-macOS.zip, extract, and run Peacock.app
+            - **Windows**: Download Peacock-Windows.zip, extract, and run Peacock.exe
+            
+            ### First Run
+            1. Launch the application
+            2. Select your audio directory when prompted
+            3. Start managing your audio metadata!
+            
+            ### Features
+            - Edit audio file metadata directly
+            - Dark mode support
+            - Search and filter recordings
+            - Play audio files
+            - Multiple directory support
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
