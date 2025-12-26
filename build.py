@@ -25,7 +25,7 @@ def clean_build():
 
 def build_app():
     """Build the application using PyInstaller"""
-    print("\n🔨 Building Peacock application...")
+    print("\n[*] Building Peacock application...")
     
     # Use pyinstaller from venv
     pyinstaller_path = os.path.join(os.path.dirname(sys.executable), 'pyinstaller')
@@ -54,8 +54,8 @@ def build_app():
     
     try:
         subprocess.run(cmd, check=True)
-        print("\n✅ Build successful!")
-        print(f"\n📦 Executable location: {os.path.abspath('dist/')}")
+        print("\n[+] Build successful!")
+        print(f"\n[*] Executable location: {os.path.abspath('dist/')}")
         
         # List what was created
         if os.path.exists('dist'):
@@ -66,7 +66,7 @@ def build_app():
         
         return True
     except subprocess.CalledProcessError as e:
-        print(f"\n❌ Build failed: {e}")
+        print(f"\n[-] Build failed: {e}")
         return False
 
 def create_readme():
@@ -114,11 +114,11 @@ For issues or questions, visit: https://github.com/balakumar66/Peacock
     if os.path.exists('dist'):
         with open(dist_readme, 'w') as f:
             f.write(readme_content)
-        print(f"\n📝 Created: {dist_readme}")
+        print(f"\n[+] Created: {dist_readme}")
 
 def main():
     print("=" * 60)
-    print("🦚 Peacock Build Script")
+    print("Peacock Build Script")
     print("=" * 60)
     
     # Clean previous builds
@@ -128,12 +128,12 @@ def main():
     if build_app():
         create_readme()
         print("\n" + "=" * 60)
-        print("✨ Build complete! Ready for distribution.")
+        print("[+] Build complete! Ready for distribution.")
         print("=" * 60)
         print("\nDistribution files are in: dist/")
-        print("\n⚠️  Note: config.json and personal data are NOT included")
+        print("\n[!] Note: config.json and personal data are NOT included")
     else:
-        print("\n❌ Build failed. Check errors above.")
+        print("\n[-] Build failed. Check errors above.")
         sys.exit(1)
 
 if __name__ == '__main__':
