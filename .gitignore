@@ -24,6 +24,10 @@ lib/__pycache__/
 config.json
 /*.html
 *.log
+audio_metadata_cache.json
+*.spec
+*.backup
+*_backup.py
 
 # Virtual environments
 venv/

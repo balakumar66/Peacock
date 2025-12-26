@@ -78,6 +78,46 @@ class MetadataManager:
         Returns:
             List of metadata dictionaries
         """
+        metadata_list = []
+        
+        try:
+            path = Path(directory)
+            if not path.exists():
+                print(f"Warning: Directory not found: {directory}")
+                return []
+            
+            pattern = '**/*' if recursive else '*'
+            for file_path in path.glob(pattern):
+                if file_path.suffix.lower() in self.AUDIO_EXTENSIONS:
+                    metadata = self.extract_metadata(str(file_path))
+                    if metadata:
+                        metadata_list.append(metadata)
+        
+        except Exception as e:
+            print(f"Error scanning directory {directory}: {str(e)}")
+        
+        return metadata_list
+    
+    def scan_multiple_directories(self, directories: List[str], recursive: bool = True) -> List[Dict]:
+        """
+        Scan multiple directories for audio files and extract metadata
+        
+        Args:
+            directories: List of directory paths to scan
+            recursive: Whether to scan subdirectories
+            
+        Returns:
+            Combined list of metadata dictionaries from all directories
+        """
+        all_metadata = []
+        
+        for directory in directories:
+            print(f"Scanning: {directory}")
+            metadata_list = self.scan_directory(directory, recursive)
+            all_metadata.extend(metadata_list)
+            print(f"Found {len(metadata_list)} files in {directory}")
+        
+        return all_metadata
         audio_files = []
         
         if recursive:

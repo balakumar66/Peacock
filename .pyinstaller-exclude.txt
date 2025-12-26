@@ -1,0 +1,10 @@
+# Files to exclude from PyInstaller build
+config.json
+audio_metadata_cache.json
+*.pyc
+__pycache__
+.git
+.gitignore
+.DS_Store
+*.backup
+peacock_server_backup.py

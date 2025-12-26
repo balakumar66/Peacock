@@ -36,19 +36,62 @@ def run_setup_wizard():
     print("=" * 80)
     print("\nLet's configure your audio library\n")
     
-    # Get default path
+    audio_paths = []
+    
+    # Get audio directories
+    print("Add directories containing your audio files")
+    print("(You can add multiple directories)\n")
+    
     while True:
-        print("Enter the path to your audio files directory:")
-        print("Examples:")
-        print("  Windows: C:/Users/YourName/Music")
-        print("  macOS:   /Users/YourName/Music")
-        print("  Linux:   /home/yourname/Music")
-        default_path = input("\n> ").strip().strip('"').strip("'")
+        print(f"\nCurrently configured: {len(audio_paths)} director{'y' if len(audio_paths) == 1 else 'ies'}")
+        if audio_paths:
+            for i, path in enumerate(audio_paths, 1):
+                print(f"  {i}. {path}")
         
-        if os.path.exists(default_path):
+        print("\nOptions:")
+        print("  1. Add directory")
+        if audio_paths:
+            print("  2. Remove a directory")
+            print("  3. Continue to next step")
+        print("  0. Cancel setup")
+        
+        choice = input("\nSelect option: ").strip()
+        
+        if choice == '1':
+            print("\nEnter the path to your audio files directory:")
+            print("Examples:")
+            print("  Windows: C:/Users/YourName/Music")
+            print("  macOS:   /Users/YourName/Music")
+            print("  Linux:   /home/yourname/Music")
+            default_path = input("\n> ").strip().strip('"').strip("'")
+            
+            if os.path.exists(default_path):
+                if default_path not in audio_paths:
+                    audio_paths.append(default_path)
+                    print(f"\n✓ Added: {default_path}")
+                else:
+                    print(f"\n⚠️  Directory already added")
+            else:
+                print(f"\n❌ Directory '{default_path}' does not exist")
+        
+        elif choice == '2' and audio_paths:
+            try:
+                idx = int(input("\nEnter number to remove (or 0 to cancel): ").strip())
+                if 1 <= idx <= len(audio_paths):
+                    removed = audio_paths.pop(idx - 1)
+                    print(f"\n✓ Removed: {removed}")
+            except ValueError:
+                print("\n❌ Invalid input")
+        
+        elif choice == '3' and audio_paths:
             break
-        else:
-            print(f"\n❌ Directory '{default_path}' does not exist. Please try again.\n")
+        
+        elif choice == '0':
+            print("\nSetup cancelled.")
+            exit(0)
+        
+        elif not audio_paths:
+            print("\n⚠️  Please add at least one directory first")
     
     # Get report title
     print("\nEnter a title for your audio library:")
@@ -59,7 +102,8 @@ def run_setup_wizard():
     
     # Create config
     config = {
-        "default_path": default_path,
+        "audio_paths": audio_paths,
+        "default_path": audio_paths[0],  # Keep for backward compatibility
         "report_title": report_title,
         "audio_extensions": [".m4a", ".mp3", ".wav", ".aac", ".flac", ".ogg", ".m4v", ".opus"],
         "output_filename": "audio_library_report.html"
@@ -71,7 +115,9 @@ def run_setup_wizard():
         json.dump(config, f, indent=2)
     
     print(f"\n✅ Configuration saved to {config_path}")
-    print(f"✅ Audio directory: {default_path}")
+    print(f"✅ Configured {len(audio_paths)} director{'y' if len(audio_paths) == 1 else 'ies'}")
+    for path in audio_paths:
+        print(f"   • {path}")
     print(f"✅ Library title: {report_title}\n")
     
     return config
@@ -89,10 +135,20 @@ def load_config(path_override=None):
     with open(config_path, 'r') as f:
         cfg = json.load(f)
     
-    # Override default_path if provided
+    # Normalize config to always use audio_paths list
+    if 'default_path' in cfg and 'audio_paths' not in cfg:
+        # Backward compatibility: convert single path to list
+        cfg['audio_paths'] = [cfg['default_path']]
+    elif 'audio_paths' not in cfg:
+        cfg['audio_paths'] = []
+    
+    # Override paths if provided
     if path_override:
-        cfg['default_path'] = path_override
-        print(f"✓ Using path override: {path_override}")
+        if isinstance(path_override, list):
+            cfg['audio_paths'] = path_override
+        else:
+            cfg['audio_paths'] = [path_override]
+        print(f"✓ Using path override: {cfg['audio_paths']}")
     
     return cfg
 
@@ -105,19 +161,32 @@ def save_config(cfg):
 
 
 def load_audio_metadata(path=None):
-    """Load audio metadata from specified or configured directory"""
+    """Load audio metadata from specified or configured directories"""
     global audio_metadata, config, current_directory
     
-    audio_path = path or config.get('default_path', '')
-    current_directory = audio_path
+    if path:
+        paths = [path] if isinstance(path, str) else path
+    else:
+        paths = config.get('audio_paths', [])
+        if not paths:
+            # Fallback to default_path for backward compatibility
+            default_path = config.get('default_path')
+            paths = [default_path] if default_path else []
     
-    print(f"Loading audio metadata from: {audio_path}")
-    
-    if not os.path.exists(audio_path):
-        print(f"Error: Audio path '{audio_path}' does not exist")
+    if not paths:
+        print("Error: No audio directory configured")
         return []
     
-    audio_metadata = metadata_manager.scan_directory(audio_path)
+    # Display paths being scanned
+    print(f"Loading audio metadata from {len(paths)} location(s):")
+    for p in paths:
+        print(f"  • {p}")
+    
+    current_directory = paths[0] if len(paths) == 1 else f"{len(paths)} directories"
+    
+    metadata_manager = MetadataManager()
+    audio_metadata = metadata_manager.scan_multiple_directories(paths)
+    
     print(f"Loaded {len(audio_metadata)} audio files")
     return audio_metadata
 
@@ -147,7 +216,7 @@ def get_config():
 
 @app.route('/api/change_directory', methods=['POST'])
 def change_directory():
-    """Change audio library directory and reload"""
+    """Add audio directory and reload"""
     data = request.json
     new_path = data.get('path', '').strip()
     
@@ -161,17 +230,26 @@ def change_directory():
         return jsonify({'success': False, 'error': 'Path is not a directory'}), 400
     
     try:
-        # Update config
-        config['default_path'] = new_path
-        save_config(config)
+        # Get current paths
+        current_paths = config.get('audio_paths', [])
         
-        # Reload metadata
-        new_metadata = load_audio_metadata(new_path)
+        # Add new path if not already present
+        if new_path not in current_paths:
+            current_paths.append(new_path)
+            config['audio_paths'] = current_paths
+            # Update default_path for backward compatibility
+            if not config.get('default_path'):
+                config['default_path'] = current_paths[0]
+            save_config(config)
+        
+        # Reload metadata from all paths
+        new_metadata = load_audio_metadata()
         
         return jsonify({
             'success': True,
-            'path': current_directory,
+            'path': new_path,
             'file_count': len(new_metadata),
+            'total_paths': len(current_paths),
             'audio_data': new_metadata
         })
     except Exception as e:
